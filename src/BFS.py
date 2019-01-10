@@ -24,12 +24,13 @@ def connectedComponents(connectivityMatrix):
 
         Returns a list, containing lists of connected nodes
     '''
-    
+
     # Short names cut down clutter
-    cMatrix = connectivityMatrix 
-    
+    cMatrix = connectivityMatrix
+
     # Handles invaid edge cases
     if (cMatrix is None or cMatrix.size <= 1 or len(cMatrix.shape) != 2):
+        print("Invalid/Missing connectivity matrix. Returning NONE.")
         return None
 
     # Initialize queue for BFS, and result list
@@ -50,6 +51,7 @@ def connectedComponents(connectivityMatrix):
         # elif visited[node] == 1:
         #     print(f"Skipping over node {node}, visited alrdy")
         #     pass #Node already visited, no need to start BFS
+
     return result, cMatrix
 
 def _bfsHelper(queue, visited, connectivityMatrix, result):
