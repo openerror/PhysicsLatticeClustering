@@ -1,6 +1,6 @@
 # Identifying Clusters on a Discrete Periodic Lattice via Machine Learning
 
-Published as part of [insert link]
+Accompanying manuscript under peer review for publication in *Computer Physics Communication*. Preprint here: [https://arxiv.org/abs/1901.00091](https://arxiv.org/abs/1901.00091).
 
 Python code for identifying clusters on a 2D periodic lattice, inspired by biophysical
 studies and using **[hierarchical clustering](https://joernhees.de/blog/2015/08/26/scipy-hierarchical-clustering-and-dendrogram-tutorial/#Visualizing-Your-Clusters)**. Utilizes Breadth-First Search ([BFS](https://en.wikipedia.org/wiki/Breadth-first_search)) to connect together clusters that touch each other across boundaries.
@@ -23,6 +23,7 @@ see `ClusteringConcept-Showcase.ipynb`. As for a possible workflow using all cod
 please see `CompletWorkflow-Showcase.ipynb`.
 
 Here are their purposes, briefly:
+
 `clustering.py`
 * Wrappers for hierarchical clustering routines provided by `SciPy`; output feeds into functions defined in `grouping.py`
 
@@ -35,6 +36,6 @@ Here are their purposes, briefly:
 `sgolay2D.py`
 * Savitzky-Golay filtering for 2D data; useful for smoothing out noise before binarizing
 and feeding into clustering procedures. Code borrowed from somewhere else but can no
-longer find the source; please let me know where credit is due! 
+longer find the source; please let me know where credit is due!
 
 Unit tests pending!
