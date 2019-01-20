@@ -38,4 +38,5 @@ Here are their purposes, briefly:
 and feeding into clustering procedures. Code borrowed from somewhere else but can no
 longer find the source; please let me know where credit is due!
 
-Unit tests pending!
+`tests.py`
+For now: basic unit tests on `BFS.py`. More to be implemented.
