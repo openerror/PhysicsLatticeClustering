@@ -30,6 +30,11 @@ Here are their purposes, briefly:
 * Handles periodic boundaries conditions; invokes `BFS.py`
 
 `BFS.py`
-* Executes breadth-first search to identify clusters touching across periodic boundaries
+* Executes breadth-first search to identify clusters touching across periodic boundaries'
+
+`sgolay2D.py`
+* Savitzky-Golay filtering for 2D data; useful for smoothing out noise before binarizing
+and feeding into clustering procedures. Code borrowed from somewhere else but can no
+longer find the source; please let me know where credit is due! 
 
 Unit tests pending!
