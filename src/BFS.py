@@ -36,7 +36,7 @@ def connectedComponents(connectivityMatrix):
     # Initialize queue for BFS, and result list
     # Limit queue to 300 items; should be enough and saves memory
     visited = np.zeros((cMatrix.shape[0],1), dtype='int16')
-    queue = deque(maxlen=300)
+    queue = deque()
     result, singleNodeResult = [], []
 
     for node in range(0, len(visited)):
