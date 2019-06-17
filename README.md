@@ -1,6 +1,6 @@
 # Identifying Clusters on a Discrete Periodic Lattice via Machine Learning
 
-Accompanying manuscript under peer review for publication in *Computer Physics Communication*. Preprint here: [https://arxiv.org/abs/1901.00091](https://arxiv.org/abs/1901.00091).
+Accompanying manuscript published in *Computer Physics Communication*. Link to article [here] (https://www.sciencedirect.com/science/article/pii/S0010465519301535#aep-article-footnote-id1).
 
 Python code for identifying clusters on a 2D periodic lattice, inspired by biophysical
 studies and using **[hierarchical clustering](https://joernhees.de/blog/2015/08/26/scipy-hierarchical-clustering-and-dendrogram-tutorial/#Visualizing-Your-Clusters)**. Utilizes Breadth-First Search ([BFS](https://en.wikipedia.org/wiki/Breadth-first_search)) to connect together clusters that touch each other across boundaries.
