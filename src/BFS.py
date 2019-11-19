@@ -17,26 +17,25 @@ find the connected components --- clusters that are together directly, or transi
 #         [0,0,0,0,1],
 #         [0,0,0,1,0]])
 
-def connectedComponents(connectivityMatrix):
+def connected_components(connectivityMatrix):
     '''
         Assume an undirected graph, return all connected components using BFS
         connectivityMatrix: NxN matrix corresponding to graph with N nodes
 
         Returns a list, containing lists of connected nodes
     '''
-
+    
     # Short names cut down clutter
-    cMatrix = connectivityMatrix
-
+    cMatrix = connectivityMatrix 
+    
     # Handles invaid edge cases
     if (cMatrix is None or cMatrix.size <= 1 or len(cMatrix.shape) != 2):
-        print("Invalid/Missing connectivity matrix. Returning NONE.")
         return None
 
     # Initialize queue for BFS, and result list
     # Limit queue to 300 items; should be enough and saves memory
     visited = np.zeros((cMatrix.shape[0],1), dtype='int16')
-    queue = deque()
+    queue = deque(maxlen=300)
     result, singleNodeResult = [], []
 
     for node in range(0, len(visited)):
@@ -51,7 +50,6 @@ def connectedComponents(connectivityMatrix):
         # elif visited[node] == 1:
         #     print(f"Skipping over node {node}, visited alrdy")
         #     pass #Node already visited, no need to start BFS
-
     return result, cMatrix
 
 def _bfsHelper(queue, visited, connectivityMatrix, result):
