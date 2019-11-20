@@ -1,6 +1,6 @@
+import numpy as np
 
-
-def intersection_over_union(pt1, pt2, lattice_params):
+def intersection_over_union(ptA, ptB, lattice_params):
     '''
         Convert two sets of Cartesian coordinates to scalar index, and then compute their
         intersection-over-union.
@@ -16,13 +16,34 @@ def intersection_over_union(pt1, pt2, lattice_params):
         return int(y + max_y * x)
 
     max_y = lattice_params['sizeY']
-    indices_1 = set([ _get_scalar_index(x, y, max_y) for x,y in zip(pt1[0], pt1[1]) ])
-    indices_2 = set([ _get_scalar_index(x, y, max_y) for x,y in zip(pt2[0], pt2[1]) ])
+    indices_A = set([ _get_scalar_index(x, y, max_y) for x,y in zip(ptA[0], ptA[1]) ])
+    indices_B = set([ _get_scalar_index(x, y, max_y) for x,y in zip(ptB[0], ptB[1]) ])
 
-    intersection = len(indices_1.intersection(indices_2))
-    union = len(indices_1.union(indices_2))
-
+    intersection = len(indices_A.intersection(indices_B))
+    union = len(indices_A.union(indices_B))
     return intersection/1./union
+
+
+def find_iou_matrix(cluster_dict_A, cluster_dict_B, lattice_params):
+    '''
+        Compute pairwise intersection-over-union (IoU) values for clusters identified
+        in dictionaries A and B. 
+        
+        Args:
+            cluster_dict_A, cluster_dict_B: outputs of generate_coordinate_dict()
+            lattice_params: dict[str]->int containing keys 'sizeY' and 'sizeX'
+        Returns:
+            iou_matrix: numpy array recording IoU values
+    '''
+    
+    iou_matrix = np.zeros(shape=(len(cluster_dict_A), len(cluster_dict_B)))
+    
+    for i,_ in enumerate(cluster_dict_A):
+        for j,_ in enumerate(cluster_dict_B):
+            iou_matrix[i, j] = intersection_over_union(cluster_dict_A[i], 
+                                                       cluster_dict_B[j], 
+                                                       lattice_params)
+    return iou_matrix
 
 # pt1 = [(1,2,3), (4,5,6)]
 # pt2 = [(1,2,4), (4,5,6)]
