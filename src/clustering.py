@@ -18,12 +18,13 @@ def detect_touch(X, Y, sim_params_dict, touch_threshold = 1):
         a set of (X, Y) coordinates, determine how many of them are at the grid
         boundary; return T/F according to threshold.
     '''
-
-    maxY = sim_params_dict["sizeY"]-1
-    maxX = sim_params_dict["sizeX"]-1
-    borderPts_X = np.sum(X == 0) + np.sum(X == maxX)
-    borderPts_Y = np.sum(Y == 0) + np.sum(Y == maxY)
-    return ((borderPts_X >= touch_threshold) or (borderPts_Y >= touch_threshold))
+    
+    assert (len(X)==len(Y)), "WARNINGS: lengths of the provided coordinate arrays must match!"
+    max_y = sim_params_dict["sizeY"]-1
+    max_x = sim_params_dict["sizeX"]-1
+    border_pts_x = np.sum((X == 0) | (X == max_x))
+    border_pts_y = np.sum((Y == 0) | (Y == max_y))
+    return ((border_pts_x >= touch_threshold) or (border_pts_y >= touch_threshold))
 
 
 def detect_clusters(data, dendrogram_cutoff, method='single'):
