@@ -20,7 +20,7 @@ def detect_touch(X, Y, sim_params_dict, touch_threshold = 1):
     '''
 
     maxY = sim_params_dict["sizeY"]-1
-    maxX = sim_params_dict["sizeX"]-1c
+    maxX = sim_params_dict["sizeX"]-1
     borderPts_X = np.sum(X == 0) + np.sum(X == maxX)
     borderPts_Y = np.sum(Y == 0) + np.sum(Y == maxY)
     return ((borderPts_X >= touch_threshold) or (borderPts_Y >= touch_threshold))
