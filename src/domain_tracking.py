@@ -45,6 +45,31 @@ def compute_iou_matrix(cluster_dict_A, cluster_dict_B, lattice_params):
                                                        lattice_params)
     return iou_matrix
 
+
+def find_cluster_partners(iou_matrix, threshold=0.0):
+    '''
+        Given a matrix of intersection-over-union (IoU) values between clusters, find matching partners.
+        For each row (cluster), find highest IoU counterpart and return the corresponding column index.
+        Applies high-pass thresholding to cut out weak overlaps; default to 0.0 which means no thresholding.
+
+        Args:
+            iou_matrix:: 2D numpy array computed by compute_iou_matrix()
+            threshold::float
+        Returns:
+            partners:: 1D numpy integer array containing indices of cluster partners
+    '''
+
+    # Apply "high-pass" IoU filter
+    assert (0.0 < threshold < 1.0), "IoU threshold must lie between (0, 1)"
+    matrix[matrix <= threshold] = 0.0
+
+    # Find potential partners
+    partners = matrix.argmax(axis=1)
+
+    # Mark clusters with no counterparts
+    partners[np.all(matrix == 0.0, axis=1)] = -1
+    return partners
+
 # pt1 = [(1,2,3), (4,5,6)]
 # pt2 = [(1,2,4), (4,5,6)]
 # intersection_over_union(pt1, pt2, {'sizeY': 225})
