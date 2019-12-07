@@ -10,23 +10,6 @@ import numpy as np
 from .BFS import connected_components
 
 
-def detect_touch(X, Y, sim_params_dict, touch_threshold = 1):
-    '''
-        Determine whether a cluster touches the (periodic boundary), up a threshold.
-
-        Specify a sizeY-by-sizeX rectangular grid from sim_params_dict. Then given
-        a set of (X, Y) coordinates, determine how many of them are at the grid
-        boundary; return T/F according to threshold.
-    '''
-    
-    assert (len(X)==len(Y)), "WARNINGS: lengths of the provided coordinate arrays must match!"
-    max_y = sim_params_dict["sizeY"]-1
-    max_x = sim_params_dict["sizeX"]-1
-    border_pts_x = np.sum((X == 0) | (X == max_x))
-    border_pts_y = np.sum((Y == 0) | (Y == max_y))
-    return ((border_pts_x >= touch_threshold) or (border_pts_y >= touch_threshold))
-
-
 def detect_clusters(data, dendrogram_cutoff, method='single'):
     '''
         Binarize numerical data, and then run hierarchical clustering on it.
@@ -105,7 +88,7 @@ def extract_cluster_coordinates(HCStats, sim_params_dict):
     coordinates = []
     for cid in cluster_ids:
         mask = (HCStats[:,2] == cid)
-        touch = detect_touch(X[mask], Y[mask], sim_params_dict) #Boolean var
+        touch = _detect_touch(X[mask], Y[mask], sim_params_dict) #Boolean var
         coordinates.append(( X[mask], Y[mask], touch, cid )) #Zero-base cids for future use as indices
 
     return coordinates
@@ -146,6 +129,23 @@ def find_cluster_grouping(cluster_coordinates, sim_params_dict):
     return merged_clusters
 
 
+def _detect_touch(X, Y, sim_params_dict, touch_threshold=1):
+    '''
+        Determine whether a cluster touches the (periodic boundary), up a threshold.
+
+        Specify a sizeY-by-sizeX rectangular grid from sim_params_dict. Then given
+        a set of (X, Y) coordinates, determine how many of them are at the grid
+        boundary; return T/F according to threshold.
+    '''
+    
+    assert (len(X)==len(Y)), "WARNINGS: lengths of the provided coordinate arrays must match!"
+    max_y = sim_params_dict["sizeY"]-1
+    max_x = sim_params_dict["sizeX"]-1
+    border_pts_x = np.sum((X == 0) | (X == max_x))
+    border_pts_y = np.sum((Y == 0) | (Y == max_y))
+    return ((border_pts_x >= touch_threshold) or (border_pts_y >= touch_threshold))
+
+
 def _find_boundary_points(coordinates, paramDict):
     '''
         Given the coordinates of a cluster detected by hierarchical clustering,
@@ -168,6 +168,7 @@ def _find_boundary_points(coordinates, paramDict):
     bottom = X[Y == 0]
 
     return [left, right, top, bottom, cluster_id]
+
 
 def _test_partner_identity(boundaryA, boundaryB, partner_threshold):
     '''

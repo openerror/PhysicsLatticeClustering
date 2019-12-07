@@ -3,28 +3,74 @@ from collections import deque
 from .clustering import detect_clusters, extract_cluster_coordinates, find_cluster_grouping
 
 
-def _intersection_over_union(ptA, ptB, lattice_params):
-    '''
-        Convert two sets of Cartesian coordinates to scalar index, and then compute their
-        intersection-over-union.
-
+def track_cluster_lifetime(times, coordinate_dicts, center_index, iou_threshold, lattice_params):
+    '''        
+        Given the clusters located at array index "center_index", locate the earliest
+        and latest time when any of the domains exist in the system. Existence continuity is defined by
+        intersection-over-union (IoU) overlap between domains identified at different times.
+        
         Args:
-            pt1, pt2:: (list[int], list[int]) Two-member tuples containing X, Y coordinates
-            lattice_params::dict Contains lattice dimensions
+            times:: 1D array containing simulation timestamps (hr)
+            coordinate_dicts::List[ dict[int] -> (List[int], List[int])]
+            center_index::int
+            iou_threshold::float [0...1) high-pass threshold for identifying clusters as "same"
         Returns:
-            float
+            dict[int] -> collections.deque, a dictionary mapping cluster IDs at center_index
+            to their time trajectory. Deque contains integer tuples of (time index, cluster id at that time)
     '''
+    
+    assert len(times)==len(coordinate_dicts), "ERROR: arrays containing simulation times \
+                                                and coordinate dictionaries don't have the same length"
+    existence_timestamps = {cid:deque([(center_index, cid)]) 
+                            for cid in coordinate_dicts[center_index].keys()}
+    
+    
+    def update_single_step(existence_timestamps, current_loc, current_cid, forward=True):
+        ''' Refactored logic for partner search '''
+        nonlocal lattice_params
+        update_loc = (current_loc+1) if (forward==True) else (current_loc-1)
+        
+        # Compute IoU values of our cluster with those that exist at times[later]
+        current_coordinates = {0:coordinate_dicts[current_loc][current_cid]}
+        iou_matrix = compute_iou_matrix(current_coordinates, coordinate_dicts[update_loc], lattice_params)
+        
+        # DEBUG: len(partner)==1, because we are following one cluster only
+        # Once partner is identified, update current_cid to reflect which cluster is tracked
+        partner = find_partners(iou_matrix, iou_threshold)[0]
+        current_cid = partner if (partner != -1) else -1
+        if current_cid == -1:
+            return current_loc, update_loc, current_cid
+        
+        # Update existence_timestamps
+        if forward:
+            existence_timestamps[center_cid].append((update_loc, current_cid))
+            current_loc += 1; update_loc += 1
+        else:
+            existence_timestamps[center_cid].appendleft((update_loc, current_cid))                                        
+            current_loc -= 1; update_loc -= 1
 
-    def _get_scalar_index(x:int, y:int, max_y:int) -> int:
-        return int(y + max_y * x)
-
-    max_y = lattice_params['sizeY']
-    indices_A = set([ _get_scalar_index(x, y, max_y) for x,y in zip(ptA[0], ptA[1]) ])
-    indices_B = set([ _get_scalar_index(x, y, max_y) for x,y in zip(ptB[0], ptB[1]) ])
-
-    intersection = len(indices_A.intersection(indices_B))
-    union = len(indices_A.union(indices_B))
-    return intersection/1./union
+        return current_loc, update_loc, current_cid
+    
+    
+    ## For each cluster identified at center_index, find all evolved versions of it in time
+    for center_cid, Q in existence_timestamps.items():
+        ## Search forward in time
+        current, later = center_index, center_index+1
+        current_cid = center_cid
+        while later < len(times):
+            current, later, current_cid = update_single_step(existence_timestamps, 
+                                                             current, current_cid, forward=True)
+            if current_cid == -1: break
+        
+        ## Search backward in time
+        current, before = center_index, center_index-1
+        current_cid = center_cid
+        while before >= 0:
+            current, before, current_cid = update_single_step(existence_timestamps, 
+                                                              current, current_cid, forward=False)
+            if current_cid == -1: break
+       
+    return existence_timestamps
 
 
 def compute_iou_matrix(cluster_dict_A, cluster_dict_B, lattice_params):
@@ -109,74 +155,28 @@ def generate_coordinate_dict(array, lattice_params, dendrogram_cutoff=1.1):
     return cdict
 
 
-def track_cluster_lifetime(times, coordinate_dicts, center_index, iou_threshold, lattice_params):
-    '''        
-        Given the clusters located at array index "center_index", locate the earliest
-        and latest time when any of the domains exist in the system. Existence continuity is defined by
-        intersection-over-union (IoU) overlap between domains identified at different times.
-        
-        Args:
-            times:: 1D array containing simulation timestamps (hr)
-            coordinate_dicts::List[ dict[int] -> (List[int], List[int])]
-            center_index::int
-            iou_threshold::float [0...1) high-pass threshold for identifying clusters as "same"
-        Returns:
-            dict[int] -> collections.deque, a dictionary mapping cluster IDs at center_index
-            to their time trajectory. Deque contains integer tuples of (time index, cluster id at that time)
+def _intersection_over_union(ptA, ptB, lattice_params):
     '''
-    
-    assert len(times)==len(coordinate_dicts), "ERROR: arrays containing simulation times \
-                                                and coordinate dictionaries don't have the same length"
-    existence_timestamps = {cid:deque([(center_index, cid)]) 
-                            for cid in coordinate_dicts[center_index].keys()}
-    
-    
-    def update_single_step(existence_timestamps, current_loc, current_cid, forward=True):
-        ''' Refactored logic for partner search '''
-        nonlocal lattice_params
-        update_loc = (current_loc+1) if (forward==True) else (current_loc-1)
-        
-        # Compute IoU values of our cluster with those that exist at times[later]
-        current_coordinates = {0:coordinate_dicts[current_loc][current_cid]}
-        iou_matrix = compute_iou_matrix(current_coordinates, coordinate_dicts[update_loc], lattice_params)
-        
-        # DEBUG: len(partner)==1, because we are following one cluster only
-        # Once partner is identified, update current_cid to reflect which cluster is tracked
-        partner = find_partners(iou_matrix, iou_threshold)[0]
-        current_cid = partner if (partner != -1) else -1
-        if current_cid == -1:
-            return current_loc, update_loc, current_cid
-        
-        # Update existence_timestamps
-        if forward:
-            existence_timestamps[center_cid].append((update_loc, current_cid))
-            current_loc += 1; update_loc += 1
-        else:
-            existence_timestamps[center_cid].appendleft((update_loc, current_cid))                                        
-            current_loc -= 1; update_loc -= 1
+        Convert two sets of Cartesian coordinates to scalar index, and then compute their
+        intersection-over-union.
 
-        return current_loc, update_loc, current_cid
-    
-    
-    ## For each cluster identified at center_index, find all evolved versions of it in time
-    for center_cid, Q in existence_timestamps.items():
-        ## Search forward in time
-        current, later = center_index, center_index+1
-        current_cid = center_cid
-        while later < len(times):
-            current, later, current_cid = update_single_step(existence_timestamps, 
-                                                             current, current_cid, forward=True)
-            if current_cid == -1: break
-        
-        ## Search backward in time
-        current, before = center_index, center_index-1
-        current_cid = center_cid
-        while before >= 0:
-            current, before, current_cid = update_single_step(existence_timestamps, 
-                                                              current, current_cid, forward=False)
-            if current_cid == -1: break
-       
-    return existence_timestamps
+        Args:
+            pt1, pt2:: (list[int], list[int]) Two-member tuples containing X, Y coordinates
+            lattice_params::dict Contains lattice dimensions
+        Returns:
+            float
+    '''
+
+    def _get_scalar_index(x:int, y:int, max_y:int) -> int:
+        return int(y + max_y * x)
+
+    max_y = lattice_params['sizeY']
+    indices_A = set([ _get_scalar_index(x, y, max_y) for x,y in zip(ptA[0], ptA[1]) ])
+    indices_B = set([ _get_scalar_index(x, y, max_y) for x,y in zip(ptB[0], ptB[1]) ])
+
+    intersection = len(indices_A.intersection(indices_B))
+    union = len(indices_A.union(indices_B))
+    return intersection/1./union
 
 # pt1 = [(1,2,3), (4,5,6)]
 # pt2 = [(1,2,4), (4,5,6)]
