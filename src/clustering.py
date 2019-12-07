@@ -74,9 +74,9 @@ def extract_cluster_coordinates(HCStats, sim_params_dict):
             HCStats: N-by-3 matrix; each row represents a coordinate point, and the columns
                     record the X, Y, and ID of the cluster to which this point belongs
             sim_params_dict: Python dictionary (see paramSpace.py) containing lattice sizes
-        Returns:
-            coordinates: a Python list containing 3-member tuples. Each tuple corresponds
-                        to a cluster: (X coordinates, Y coordinates, straddle True/False)
+        Yields:
+            coordinates: 4-member tuples. Each tuple corresponds
+                         to a cluster: (X coordinates, Y coordinates, straddle True/False, cluster integer id)
     '''
 
     cluster_ids, _ = np.unique(HCStats[:,-1], return_counts=True)
@@ -85,13 +85,10 @@ def extract_cluster_coordinates(HCStats, sim_params_dict):
 
     # Identify ALL clusters, and return its coordinates
     # The coordinates can then be used as a mask to access occupancy NumPy arrays
-    coordinates = []
     for cid in cluster_ids:
         mask = (HCStats[:,2] == cid)
         touch = _detect_touch(X[mask], Y[mask], sim_params_dict) #Boolean var
-        coordinates.append(( X[mask], Y[mask], touch, cid )) #Zero-base cids for future use as indices
-
-    return coordinates
+        yield ( X[mask], Y[mask], touch, cid )
 
 
 def find_cluster_grouping(cluster_coordinates, sim_params_dict):
