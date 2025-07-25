@@ -6,7 +6,6 @@
 
 import numpy as np
 
-from copy import copy
 from scipy.cluster.hierarchy import linkage, fcluster
 from numpy.typing import NDArray
 
