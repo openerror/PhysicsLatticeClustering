@@ -1,6 +1,7 @@
 import numpy as np
 from collections import deque
 from copy import copy
+from numpy.typing import NDArray
 
 '''
 Breadth-first search module to be used with singleStep.py
@@ -17,7 +18,7 @@ find the connected components --- clusters that are together directly, or transi
 #         [0,0,0,0,1],
 #         [0,0,0,1,0]])
 
-def connected_components(connectivityMatrix):
+def connected_components(connectivityMatrix: NDArray) -> list[tuple[int]]:
     '''
         Assume an undirected graph, return all connected components using BFS
         connectivityMatrix: NxN matrix corresponding to graph with N nodes
@@ -50,7 +51,7 @@ def connected_components(connectivityMatrix):
         # elif visited[node] == 1:
         #     print(f"Skipping over node {node}, visited alrdy")
         #     pass #Node already visited, no need to start BFS
-    return result, cMatrix
+    return result
 
 def _bfsHelper(queue, visited, connectivityMatrix, result):
     '''
