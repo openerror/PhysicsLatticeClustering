@@ -1,21 +1,18 @@
 # Identifying Clusters on a Discrete Periodic Lattice via Machine Learning
 
-Accompanying manuscript published in *Computer Physics Communication*. Link to article [here] (https://www.sciencedirect.com/science/article/pii/S0010465519301535#aep-article-footnote-id1).
+**July 2025: revamped repository with LLM coding assist.**
 
-Python code for identifying clusters on a 2D periodic lattice, inspired by biophysical
-studies and using **[hierarchical clustering](https://joernhees.de/blog/2015/08/26/scipy-hierarchical-clustering-and-dendrogram-tutorial/#Visualizing-Your-Clusters)**. Utilizes Breadth-First Search ([BFS](https://en.wikipedia.org/wiki/Breadth-first_search)) to connect together clusters that touch each other across boundaries.
+This repository contains Python code for my [peer-reviewed publication](https://www.sciencedirect.com/science/article/pii/S0010465519301535#aep-article-footnote-id1) published in *Computer Physics Communications*.
 
-The code assumes that the input lattice is 'binarized': contains only 0s and 1s, and would attempt to identify clusters of 1s.
+During my doctoral studies, I creatively combined machine learning with "traditional" computer science techniques, in order to automatically conduct a biophysical analysis. In particular, my amalgam of [hierarchical clustering](https://joernhees.de/blog/2015/08/26/scipy-hierarchical-clustering-and-dendrogram-tutorial/#Visualizing-Your-Clusters) and [Breath-First Search (BFS)](https://en.wikipedia.org/wiki/Breadth-first_search) allowed me to quickly analyze simulated synaptic molecular clusters, the organization of which are critical to brain functions. More details can be found in [my peer-reviewed publication in *Physical Review E*](https://badge.dimensions.ai/details/id/pub.1139571861).
+
+*Technical problem statement*: 
+1. We have a 2D grid of 0s and 1s. We want to count how many connected clusters of 1s there are.
+2. The catch is that there are periodic boundary conditions: grid edges wrap around and connect to the opposite side. This is a common method for running compute-limited simulations of a very large grid.
+3. And *that* is why we need both BFS and hierarchical clustering! 
 
 ## Software Requirements
-- Tested on Python 3.5, 3.6 and 3.7
-- [NumPy](https://www.numpy.org/), library for creating and manipulating numerical arrays
-- [SciPy](https://www.scipy.org/about.html), for performing hierarchical clustering on NumPy arrays
-- [Matplotlib](https://matplotlib.org/), for generating dendrograms and other visualizations
-- [IPython](https://ipython.org/) + [JupyterLab/Jupyter Notebook](https://jupyter.org/), for interacting with the supplied demos
-
-Assuming you have already set up Python, you can run `pip install -r requirements.txt` in the console to install all necessary libraries; add the `--user` flag if you don't have the necessary filesystem permissions.
-The file `requirements.txt` is supplied with this repository. Alternatively, use a Python distribution such as [Anaconda](https://anaconda.org/), [WinPython](https://winpython.github.io/) or [Pyzo](https://pyzo.org/), which provides a graphical interface for managing Python libraries. For more information on the libraries and their ecosystem, refer to [SciPy official website](https://www.scipy.org/install.html).
+Tested on Python ~~3.5, 3.6, 3.7,~~ 3.12. Please see [requirements.txt](requirements.txt) file for dependencies.
 
 ## Usage Directions
 All code files are located under `src`. For a visual demonstration of hierarchical clustering
@@ -32,11 +29,6 @@ Here are their purposes, briefly:
 
 `BFS.py`
 * Executes breadth-first search to identify clusters touching across periodic boundaries'
-
-`sgolay2D.py`
-* Savitzky-Golay filtering for 2D data; useful for smoothing out noise before binarizing
-and feeding into clustering procedures. Code borrowed from somewhere else but can no
-longer find the source; please let me know where credit is due!
 
 `tests.py`
 For now: basic unit tests on `BFS.py`. More to be implemented.
