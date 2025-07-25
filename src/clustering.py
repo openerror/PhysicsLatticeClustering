@@ -4,63 +4,70 @@
     by the excellent SciPy package.
 '''
 
+import numpy as np
+
 from copy import copy
 from scipy.cluster.hierarchy import linkage, fcluster
-import numpy as np
+from numpy.typing import NDArray
+
 from .BFS import connected_components
 
 
-def detect_clusters(data, dendrogram_cutoff, method='single'):
-    '''
-        Binarize numerical data, and then run hierarchical clustering on it.
+def detect_clusters(
+    data: NDArray, dendrogram_cutoff: float, method: str = "single"
+) -> tuple[NDArray, NDArray]:
+    """
+    Binarize numerical data, and then run hierarchical clustering on it.
 
-        Turn the input data into 0's and 1's by global thresholding; say, that N 1's
-        are produced as a result. Then, interpreting the array indexes of the 1's as
-        Euclidean coordinates, run hierarchical clustering on them. In machine learning
-        terms, the clustering procedure is applied to N observations, each with (at most)
-        2 features.
+    Turn the input data into 0's and 1's by global thresholding; say, that N 1's
+    are produced as a result. Then, interpreting the array indexes of the 1's as
+    Euclidean coordinates, run hierarchical clustering on them. In machine learning
+    terms, the clustering procedure is applied to N observations, each with (at most)
+    2 features.
 
-        In the end, return a N-by-3 numpy array. The columns record X,Y coordinates
-        and the (integer) id of the cluster, to which this point is assigned.
-        Assumption for 2D arrays: origin at top left corner.
+    In the end, return a N-by-3 numpy array. The columns record X,Y coordinates
+    and the (integer) id of the cluster, to which this point is assigned.
+    Assumption for 2D arrays: origin at top left corner.
 
-        Args:
-            data: 1D or 2D numpy array, containing positions
-            method: clustering linkage used
-            dendrogram_cutoff: cut-off for cluster-merging distance, applied to linkage matrix
-        Returns:
-            HCStats: a N-by-3 numpy array recording the clustering output
+    Args:
+        data: 1D or 2D numpy array, containing positions
+        method: clustering linkage used
+        dendrogram_cutoff: cut-off for cluster-merging distance, applied to linkage matrix
+    Returns:
+        HCStats: a N-by-3 numpy array recording the clustering output
 
-        For additional documentation of SciPy's hierarchical clustering routines,
-        see https://joernhees.de/blog/2015/08/26/scipy-hierarchical-clustering-and-dendrogram-tutorial/
-        and the official documentation @ https://docs.scipy.org/doc/scipy/reference/cluster.hierarchy.html
-    '''
+    For additional documentation of SciPy's hierarchical clustering routines,
+    see https://joernhees.de/blog/2015/08/26/scipy-hierarchical-clustering-and-dendrogram-tutorial/
+    and the official documentation @ https://docs.scipy.org/doc/scipy/reference/cluster.hierarchy.html
+    """
 
     # Assume already binarized; find directly occupied coordinates
     occupied_pts = np.transpose(np.nonzero(data))
 
     dim = occupied_pts.shape[1]
     if dim == 1:
-        X = occupied_pts[:,0]
+        X = occupied_pts[:, 0]
         Y = np.zeros(X.shape)
     elif dim == 2:
-        X = occupied_pts[:,1]
-        Y = occupied_pts[:,0]
+        X = occupied_pts[:, 1]
+        Y = occupied_pts[:, 0]
     else:
-        raise NotImplementedError("Function designed to handle only 1D/2D data. Higher\
-        dimensions are not yet allowed.")
+        raise NotImplementedError(
+            "Function designed to handle only 1D/2D data. Higher\
+        dimensions are not yet allowed."
+        )
 
     # Generate linkage matrix, which describes the iterative clustering steps
     # And then, identifiy each point with a cluster
     linkage_matrix = linkage(occupied_pts, method=method, metric="euclidean")
     clusters = fcluster(linkage_matrix, dendrogram_cutoff, criterion="distance")
-    clusters = clusters - 1. # Broadcasted substraction; change to zero-base index
+    clusters = clusters - 1.0  # Broadcasted substraction; change to zero-base index
 
     # Engineering the feature matrix
     # Columns: (X coordinate, Y coordinate, cluster id)
     # Casting to integer; saves space with no loss of information
-    HCStats = np.stack((X,Y,clusters), axis = 1)
-    return HCStats.astype(np.int32)
+    HCStats = np.stack((X, Y, clusters), axis=1)
+    return linkage_matrix, HCStats.astype(np.int32)
 
 
 def extract_cluster_coordinates(HCStats, sim_params_dict):
