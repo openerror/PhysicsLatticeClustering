@@ -25,16 +25,16 @@ def detect_clusters(
     terms, the clustering procedure is applied to N observations, each with (at most)
     2 features.
 
-    In the end, return a N-by-3 numpy array. The columns record X,Y coordinates
-    and the (integer) id of the cluster, to which this point is assigned.
     Assumption for 2D arrays: origin at top left corner.
 
     Args:
         data: 1D or 2D numpy array, containing positions
-        method: clustering linkage used
         dendrogram_cutoff: cut-off for cluster-merging distance, applied to linkage matrix
+        method: clustering linkage used
     Returns:
-        linkage_matrix, hc_stats: a N-by-3 numpy array recording the clustering output
+        linkage_matrix: SciPy linkage matrix describing the merge steps
+        hc_stats: N-by-3 numpy array; columns record the X,Y coordinates of each
+            point and the (integer) id of the cluster to which it is assigned
 
     For additional documentation of SciPy's hierarchical clustering routines,
     see https://joernhees.de/blog/2015/08/26/scipy-hierarchical-clustering-and-dendrogram-tutorial/
