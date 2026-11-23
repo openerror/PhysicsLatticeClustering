@@ -1,42 +1,89 @@
 # Identifying Clusters on a Discrete Periodic Lattice via Machine Learning
 
-**July 2025: revamped repository with LLM coding assist.**
+Research code from my 2019 methods paper in [*Computer Physics Communications*](https://doi.org/10.1016/j.cpc.2019.05.004) ([arXiv:1901.00091](https://arxiv.org/abs/1901.00091)), rebuilt and modernized in about 90 minutes for about 1 USD by an AI agent.
 
-This repository contains Python code for my [peer-reviewed publication](https://www.sciencedirect.com/science/article/pii/S0010465519301535#aep-article-footnote-id1) published in *Computer Physics Communications*.
+The paper solves a specific problem in computational biophysics: identifying clusters of simulated molecules on a discretized cell membrane, where lattice simulations use periodic boundary conditions to stand in for a much larger system. The code pairs hierarchical clustering with breadth-first search to handle those boundaries correctly.
 
-During my doctoral studies, I creatively combined machine learning with "traditional" computer science techniques, in order to automatically conduct a biophysical analysis. In particular, my amalgam of [hierarchical clustering](https://joernhees.de/blog/2015/08/26/scipy-hierarchical-clustering-and-dendrogram-tutorial/#Visualizing-Your-Clusters) and [Breath-First Search (BFS)](https://en.wikipedia.org/wiki/Breadth-first_search) allowed me to quickly analyze simulated synaptic molecular clusters, the organization of which are critical to brain functions. More details can be found in [my peer-reviewed publication in *Physical Review E*](https://badge.dimensions.ai/details/id/pub.1139571861).
+## AI-assisted rebuild (November 2026)
 
-*Technical problem statement*: 
-1. We have a 2D grid of 0s and 1s. We want to count how many connected clusters of 1s there are.
-2. The catch is that there are periodic boundary conditions: grid edges wrap around and connect to the opposite side. This is a common method for running compute-limited simulations of a very large grid.
-3. And *that* is why we need both BFS and hierarchical clustering! 
+The whole revision was one agent session: [GLM-5.3-flash](https://ollama.com/library/glm-5.3-flash) orchestrated through VS Code Copilot [fleet mode](https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/fleet-mode), with the published paper fed in as Markdown via [Docling](https://docling-project.github.io/).
 
-## Software Requirements
-Tested on Python ~~3.5, 3.6, 3.7, 3.12~~ 3.14, managed with [uv](https://docs.astral.sh/uv/). Dependencies are
-declared in [pyproject.toml](pyproject.toml) and locked (exact versions for reproducibility) in [uv.lock](uv.lock).
+- **About 1 USD and 90 minutes**, start to finish.
+- **A hidden bug found and fixed** that had gone unnoticed since 2019.
+- **Jupyter notebooks replaced with Quarto Markdown** — the source is diffable and the output is one self-contained HTML file.
+- **19 unit tests added** (4 for BFS, 15 for clustering) covering the full pipeline: `19 passed in 0.15s`.
+- **PEP 8 naming and style conventions** applied throughout, following the [Ponytail](https://github.com/DietrichGebert/ponytail/blob/main/.github/copilot-instructions.md) style guide.
+- **Leaner install**: the library needs only NumPy and SciPy; notebook and plotting tooling moved to an optional `docs` group.
 
-## Getting Started
-With [uv installed](https://docs.astral.sh/uv/getting-started/installation/):
+## The problem
 
-```sh
-uv sync                              # create .venv on Python 3.14 and install locked deps
-uv run python -m pytest src/ -v      # run the unit tests
-uv run jupyter notebook              # work through the showcase notebooks
+Simulating a cell membrane means discretizing it into a grid of patches. To analyze the result, you need to count and measure the groups of occupied patches — but the grid is usually periodic, so opposite edges are neighbours.
+
+1. A 2D grid of 0s and 1s: count the connected groups of 1s, where only non-diagonal neighbours count.
+2. The grid edges wrap around, as in compute-limited simulations standing in for a much larger lattice.
+3. Distance-based clustering cannot see across that wrap, so the pipeline clusters first, then merges the clusters that meet at a seam with breadth-first search.
+
+This is what the paper formalizes and what this repository implements.
+
+## Quick start
+
+Requires Python 3.14+ and [uv](https://docs.astral.sh/uv/getting-started/installation/).
+
+``` sh
+uv sync                                  # NumPy + SciPy + pytest
+uv run python -m pytest src/ -v          # run the unit tests
 ```
 
+``` sh
+uv run --group docs quarto render ClusteringConcept-Showcase.qmd --to html
+```
 
-## Usage Directions
-All code files are located under `src`. For a visual demonstration of hierarchical clustering
-see `ClusteringConcept-Showcase.ipynb`. As for a possible workflow using all code files,
-please see `CompletWorkflow-Showcase.ipynb`.
+The second command renders the showcase: it needs the `docs` group and [Quarto](https://quarto.org/docs/get-started/) (`brew install --cask quarto`, v1.11.9 here). A pre-rendered `ClusteringConcept-Showcase.html` is checked in, but GitHub shows it as source: download and open it in a browser.
 
-Here are their purposes, briefly:
+## Usage
 
-`clustering.py`
-* Wrappers for hierarchical clustering routines provided by `SciPy`; output feeds into the periodic-boundary reconciliation, which merges the clusters touching across lattice seams (via `bfs.py`)
+``` python
+import numpy as np
+from src.clustering import (
+    detect_clusters,
+    extract_cluster_coordinates,
+    find_cluster_grouping,
+)
 
-`bfs.py`
-* Executes breadth-first search to identify clusters touching across periodic boundaries'
+# Paper Figure 1: six occupied sites on a 5x5 lattice, as (row, col)
+lattice = np.zeros((5, 5), dtype=np.int32)
+for row, col in [(0, 4), (1, 1), (2, 3), (2, 1), (3, 1), (4, 4)]:
+    lattice[row, col] = 1
 
-`test_bfs.py`, `test_clustering.py`
-* Pytest unit tests, one file per module; run with `uv run python -m pytest src/ -v`
+params = {"sizeX": 5, "sizeY": 5}
+
+linkage_matrix, hc_stats = detect_clusters(
+    lattice, dendrogram_cutoff=1.1, method="single"
+)
+coords = list(extract_cluster_coordinates(hc_stats, params))
+groups = find_cluster_grouping(coords, params)
+
+print("cluster areas:", [len(x) for x, _, _, _ in coords])
+print("merged groups:", [[int(c) for c in g] for g in groups])
+```
+
+``` text
+cluster areas: [3, 1, 1, 1]
+merged groups: [[0], [1], [2, 3]]
+```
+
+Four Euclidean clusters become three physical clusters: ids 2 and 3 meet across the periodic boundary.
+
+## The code
+
+| File | Role |
+|---|---|
+| `clustering.py` | SciPy `linkage`/`fcluster` wrappers plus periodic-boundary reconciliation |
+| `bfs.py` | BFS connected components over the cluster-adjacency matrix |
+| `test_clustering.py`, `test_bfs.py` | 19 pytest unit tests, one file per module |
+
+## Citation and license
+
+If you use this code, cite: E. Law, *Identifying clusters on a discrete periodic lattice via machine learning*, Computer Physics Communications **243** (2019) 106–109. [doi:10.1016/j.cpc.2019.05.004](https://doi.org/10.1016/j.cpc.2019.05.004) · [arXiv:1901.00091](https://arxiv.org/abs/1901.00091)
+
+[`CITATION.cff`](CITATION.cff) gives GitHub a "Cite this repository" button. The applied biophysics follow-up is Law, Li, Kahraman & Haselwandter, *Phys. Rev. E* **104**, 014403 (2021), [doi:10.1103/PhysRevE.104.014403](https://doi.org/10.1103/PhysRevE.104.014403). Released under [CC BY 4.0](LICENSE).
