@@ -2287,7 +2287,7 @@ vertical-align: -.125em;
 <section id="step-1-load-libraries-and-the-src-pipeline" class="level2">
 <h2 class="anchored" data-anchor-id="step-1-load-libraries-and-the-src-pipeline">Step 1 – Load libraries and the src pipeline</h2>
 <p>One import exposes the whole pipeline; <code>%matplotlib inline</code> keeps figures embedded when executed outside a notebook frontend, and <code>%load_ext autoreload</code> makes repeated runs pick up any <code>src/</code> edits without a kernel restart.</p>
-<div id="b9362d80" class="cell" data-execution_count="1">
+<div id="ef3c3410" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Show Python code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -2306,7 +2306,7 @@ vertical-align: -.125em;
 <section id="step-2-define-and-visualize-the-5x5-test-lattice" class="level2">
 <h2 class="anchored" data-anchor-id="step-2-define-and-visualize-the-5x5-test-lattice">Step 2 – Define and visualize the 5x5 test lattice</h2>
 <p>The toy lattice places a three-site strip plus an isolated site in the middle, and two singletons on the top edge at <code>(y=0, x=4)</code> and <code>(y=4, x=4)</code>. Those two top-edge sites are the interesting part: under periodic boundary conditions they are neighbours across the seam, so they belong to <em>one</em> physical cluster.</p>
-<div id="121df69c" class="cell" data-execution_count="2">
+<div id="f383e72c" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Show Python code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">&#39;&#39;&#39; 5x5 sample lattice with 2 clusters in the middle, </span></span>
@@ -2319,7 +2319,7 @@ vertical-align: -.125em;
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>sample_lattice[<span class="dv">4</span>,<span class="dv">0</span>] <span class="op">=</span> <span class="dv">1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="4e9b7359" class="cell" data-execution_count="3">
+<div id="e7b4e3fa" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Show Python code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">&#39;&#39;&#39; Plot and visualize; yellow+blue dot indicates occupied sites&#39;&#39;&#39;</span></span>
@@ -2347,7 +2347,7 @@ vertical-align: -.125em;
 <h2 class="anchored" data-anchor-id="step-3-detect-the-euclidean-clusters-with-detect_clusters">Step 3 – Detect the Euclidean clusters with detect_clusters()</h2>
 <p><code>dendrogram_cutoff = 1.1</code> cuts the dendrogram at a dissimilarity of 1.1 lattice units, i.e. anything closer than one site joins the same cluster. <code>hc_stats</code> holds one row per occupied site: columns are the X and Y coordinates plus the (zero-based) Euclidean cluster id. <code>lattice_params</code> is the grid geometry the boundary reconciliation needs in Step 4.</p>
 <p>For a primer on SciPy’s hierarchical clustering output, see <a href="https://joernhees.de/blog/2015/08/26/scipy-hierarchical-clustering-and-dendrogram-tutorial/">this tutorial</a>.</p>
-<div id="d6217343" class="cell" data-execution_count="4">
+<div id="c3db84dd" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Show Python code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>cutoff <span class="op">=</span> <span class="fl">1.1</span></span>
@@ -2362,7 +2362,7 @@ vertical-align: -.125em;
 <section id="step-4-reconcile-the-clusters-across-the-periodic-boundaries" class="level2">
 <h2 class="anchored" data-anchor-id="step-4-reconcile-the-clusters-across-the-periodic-boundaries">Step 4 – Reconcile the clusters across the periodic boundaries</h2>
 <p>This is the stage a plain dendrogram cannot perform. <code>extract_cluster_coordinates()</code> annotates each Euclidean cluster with its coordinates and a boundary-touch flag; <code>find_cluster_grouping()</code> then merges every pair of clusters sitting on opposite faces of the same seam, and BFS chains such merges transitively. The printed <code>cluster_groups</code> are lists of <code>hc_stats</code> cluster ids: <code>[[0], [1], [2, 3]]</code> means ids 2 and 3 – the two top-edge sites – form <em>one</em> physical cluster.</p>
-<div id="d73a5bf5" class="cell" data-execution_count="5">
+<div id="6de42b29" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Show Python code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find groups of Euclidean clusters, merged across the periodic boundaries</span></span>
@@ -2380,7 +2380,7 @@ vertical-align: -.125em;
 <section id="step-5-cut-the-dendrogram-and-color-the-sites-by-merged-group" class="level2">
 <h2 class="anchored" data-anchor-id="step-5-cut-the-dendrogram-and-color-the-sites-by-merged-group">Step 5 – Cut the dendrogram and color the sites by merged group</h2>
 <p>The left panel re-plots the dendrogram with the dashed cut at 1.1; the right panel spreads the same sites in coordinate space, colored by <strong>merged group</strong> rather than by Euclidean cluster id, so seam-partners appear in one color.</p>
-<div id="adcbe4b3" class="cell" data-execution_count="6">
+<div id="4d75ef63" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Show Python code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fig1, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>,<span class="dv">2</span>)</span>
@@ -2423,7 +2423,7 @@ vertical-align: -.125em;
 <section id="step-6-side-by-side-lattice-dendrogram-merged-clusters" class="level2">
 <h2 class="anchored" data-anchor-id="step-6-side-by-side-lattice-dendrogram-merged-clusters">Step 6 – Side-by-side: lattice, dendrogram, merged clusters</h2>
 <p>The full picture. Panel A is the raw lattice, B the dendrogram with the cut, C the clusters colored by merged group; site labels in C read <code>cluster id / merged group id</code>, making the periodic merge visible as two differently-labeled sites in one color (<code>2/2</code> and <code>3/2</code>).</p>
-<div id="01c3559f" class="cell" data-execution_count="7">
+<div id="09120355" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Show Python code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fig2,axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>,<span class="dv">3</span>)</span>
@@ -2466,9 +2466,7 @@ vertical-align: -.125em;
 <span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a><span class="co"># Label each site with &#39;cluster id / merged group id&#39;</span></span>
 <span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> x, y, cid <span class="kw">in</span> hc_stats:</span>
-<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">2</span>].text(x<span class="op">+</span><span class="fl">0.15</span>, y<span class="op">+</span><span class="fl">0.15</span>, <span class="ss">f&quot;</span><span class="sc">{</span>cid<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>group_of[<span class="bu">int</span>(cid)]<span class="sc">}</span><span class="ss">&quot;</span>, fontsize<span class="op">=</span><span class="dv">15</span>)</span>
-<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>fig2.savefig(<span class="st">&quot;SampleData.png&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">2</span>].text(x<span class="op">+</span><span class="fl">0.15</span>, y<span class="op">+</span><span class="fl">0.15</span>, <span class="ss">f&quot;</span><span class="sc">{</span>cid<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>group_of[<span class="bu">int</span>(cid)]<span class="sc">}</span><span class="ss">&quot;</span>, fontsize<span class="op">=</span><span class="dv">15</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>

@@ -201,8 +201,6 @@ plt.tight_layout()
 # Label each site with 'cluster id / merged group id'
 for x, y, cid in hc_stats:
     axes[2].text(x+0.15, y+0.15, f"{cid}/{group_of[int(cid)]}", fontsize=15)
-
-fig2.savefig("SampleData.png")
 ```
 
 ## Summary
