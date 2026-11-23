@@ -1355,9 +1355,6 @@ name = "physics-lattice-clustering"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "jupyter" },
-    { name = "matplotlib" },
-    { name = "notebook" },
     { name = "numpy" },
     { name = "scipy" },
 ]
@@ -1366,18 +1363,25 @@ dependencies = [
 dev = [
     { name = "pytest" },
 ]
+docs = [
+    { name = "jupyter" },
+    { name = "matplotlib" },
+    { name = "notebook" },
+]
 
 [package.metadata]
 requires-dist = [
-    { name = "jupyter", specifier = ">=1.1.1" },
-    { name = "matplotlib", specifier = ">=3.11.2" },
-    { name = "notebook", specifier = ">=7.6.5" },
     { name = "numpy", specifier = ">=2.5.5" },
     { name = "scipy", specifier = ">=1.18.1" },
 ]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=9.2.0" }]
+docs = [
+    { name = "jupyter", specifier = ">=1.1.1" },
+    { name = "matplotlib", specifier = ">=3.11.2" },
+    { name = "notebook", specifier = ">=7.6.5" },
+]
 
 [[package]]
 name = "pillow"
