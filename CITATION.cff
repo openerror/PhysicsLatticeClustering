@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper below."
+title: "Identifying clusters on a discrete periodic lattice via machine learning"
+type: software
+authors:
+  - family-names: "Law"
+    given-names: "Everest"
+repository-code: "https://github.com/openerror/PhysicsLatticeClustering"
+url: "https://doi.org/10.1016/j.cpc.2019.05.004"
+license: CC-BY-4.0
+keywords:
+  - "hierarchical clustering"
+  - "breadth-first search"
+  - "periodic boundary conditions"
+  - "lattice simulation"
+  - "computational physics"
+identifiers:
+  - type: doi
+    value: "10.1016/j.cpc.2019.05.004"
+    description: "Published article (Computer Physics Communications)"
+  - type: doi
+    value: "10.48550/arXiv.1901.00091"
+    description: "arXiv preprint"
+preferred-citation:
+  type: article
+  title: "Identifying clusters on a discrete periodic lattice via machine learning"
+  authors:
+    - family-names: "Law"
+      given-names: "Everest"
+  journal: "Computer Physics Communications"
+  volume: 243
+  start: 106
+  end: 109
+  year: 2019
+  doi: "10.1016/j.cpc.2019.05.004"

@@ -3,6 +3,7 @@ name = "physics-lattice-clustering"
 version = "0.1.0"
 description = "Identifying clusters on a discrete periodic lattice via hierarchical clustering and BFS"
 readme = "README.md"
+license = "CC-BY-4.0"
 requires-python = ">=3.14"
 dependencies = [
     "numpy>=2.5.5",
