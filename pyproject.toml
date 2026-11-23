@@ -1,0 +1,25 @@
+[project]
+name = "physics-lattice-clustering"
+version = "0.1.0"
+description = "Identifying clusters on a discrete periodic lattice via hierarchical clustering and BFS"
+readme = "README.md"
+license = "CC-BY-4.0"
+requires-python = ">=3.14"
+dependencies = [
+    "numpy>=2.5.5",
+    "scipy>=1.18.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
+# Only needed to render ClusteringConcept-Showcase.qmd (Jupyter kernel + figures)
+docs = [
+    "jupyter>=1.1.1",
+    "matplotlib>=3.11.2",
+    "notebook>=7.6.5",
+]
+
+[tool.uv]
+package = false

@@ -1,0 +1,212 @@
+---
+title: "Identifying clusters on a periodic lattice"
+subtitle: "Concept showcase -- hierarchical clustering plus periodic-boundary reconciliation, using code from src/clustering.py"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    code-fold: true
+    code-summary: "Show Python code"
+    embed-resources: true
+execute:
+  echo: true
+jupyter: python3
+---
+
+Render from the repository root with `uv run quarto render ClusteringConcept-Showcase.qmd --to html`
+(Python 3.14 environment created beforehand by `uv sync`).
+
+## Overview: why two stages?
+
+On a periodic 5x5 lattice, sites on opposite edges are neighbours, but their
+Euclidean distance is nearly the full lattice width. Hierarchical clustering
+measures Euclidean distances, so it *cannot* see the wrap-around connection.
+The pipeline therefore works in two stages:
+
+1. **Detect Euclidean clusters** with `detect_clusters()`, a wrapper around SciPy's `linkage`/`fcluster`;
+2. **Reconcile across the periodic boundaries** with `extract_cluster_coordinates()` and `find_cluster_grouping()`, which flag edge-touching clusters and merge those sharing a seam -- transitively, via breadth-first search (`src/bfs.py`).
+
+| Function | Stage | Role |
+|---|---|---|
+| `detect_clusters()` | 1 | Occupancy matrix to Euclidean clusters, recorded in `linkage_matrix` and `hc_stats` |
+| `extract_cluster_coordinates()` | 2 | Per cluster: coordinates plus a "touches an edge?" flag |
+| `find_cluster_grouping()` | 2 | Merges clusters touching across a seam; returns lists of cluster ids |
+
+## Step 1 -- Load libraries and the src pipeline
+
+One import exposes the whole pipeline; `%matplotlib inline` keeps figures
+embedded when executed outside a notebook frontend, and
+`%load_ext autoreload` makes repeated runs pick up any `src/` edits without a
+kernel restart.
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.cluster.hierarchy as hierarchy
+from scipy.cluster.hierarchy import dendrogram
+
+''' Custom script files '''
+from src.clustering import detect_clusters, extract_cluster_coordinates, find_cluster_grouping
+%matplotlib inline
+%load_ext autoreload
+%autoreload 2
+```
+
+## Step 2 -- Define and visualize the 5x5 test lattice
+
+The toy lattice places a three-site strip plus an isolated site in the middle,
+and two singletons on the top edge at `(y=0, x=4)` and `(y=4, x=4)`. Those two
+top-edge sites are the interesting part: under periodic boundary conditions
+they are neighbours across the seam, so they belong to *one* physical cluster.
+
+```{python}
+''' 5x5 sample lattice with 2 clusters in the middle, 
+1 other connected across periodic boundaries'''
+
+sample_lattice = np.zeros(shape=(5,5), dtype=np.int32)
+sample_lattice[1, range(1,4)] = 1
+sample_lattice[3, 2] = 1
+sample_lattice[4,4] = 1
+sample_lattice[4,0] = 1
+```
+
+```{python}
+''' Plot and visualize; yellow+blue dot indicates occupied sites'''
+
+plt.title("Sample 5x5 Lattice (Yellow=Occupied)")
+plt.xticks(np.arange(-0.5,5.0,1))
+plt.yticks(np.arange(-0.5,5.0,1))
+plt.grid()
+plt.imshow(sample_lattice, origin="lower")
+
+# Pinpoint the lattice sites
+occupied_pts = np.transpose(np.nonzero(sample_lattice))
+plt.scatter(occupied_pts[:,1], occupied_pts[:,0])
+```
+
+## Step 3 -- Detect the Euclidean clusters with detect_clusters()
+
+`dendrogram_cutoff = 1.1` cuts the dendrogram at a dissimilarity of 1.1 lattice
+units, i.e. anything closer than one site joins the same cluster. `hc_stats`
+holds one row per occupied site: columns are the X and Y coordinates plus the
+(zero-based) Euclidean cluster id. `lattice_params` is the grid geometry the
+boundary reconciliation needs in Step 4.
+
+For a primer on SciPy's hierarchical clustering output, see
+[this tutorial](https://joernhees.de/blog/2015/08/26/scipy-hierarchical-clustering-and-dendrogram-tutorial/).
+
+```{python}
+cutoff = 1.1
+lattice_params = {"sizeY": 5, "sizeX": 5}
+
+linkage_matrix, hc_stats = detect_clusters(
+    data=sample_lattice, method="single", dendrogram_cutoff=cutoff
+)
+```
+
+## Step 4 -- Reconcile the clusters across the periodic boundaries
+
+This is the stage a plain dendrogram cannot perform.
+`extract_cluster_coordinates()` annotates each Euclidean cluster with its
+coordinates and a boundary-touch flag; `find_cluster_grouping()` then merges
+every pair of clusters sitting on opposite faces of the same seam, and BFS
+chains such merges transitively. The printed `cluster_groups` are lists of
+`hc_stats` cluster ids: `[[0], [1], [2, 3]]` means ids 2 and 3 -- the two
+top-edge sites -- form *one* physical cluster.
+
+```{python}
+# Find groups of Euclidean clusters, merged across the periodic boundaries
+cluster_coordinates = list(extract_cluster_coordinates(hc_stats, lattice_params))
+cluster_groups = find_cluster_grouping(cluster_coordinates, lattice_params)
+print("Merged cluster groups:", cluster_groups)
+group_of = {cid: g for g, group in enumerate(cluster_groups) for cid in group}
+point_groups = np.array([group_of[cid] for cid in hc_stats[:,-1]])
+```
+
+## Step 5 -- Cut the dendrogram and color the sites by merged group
+
+The left panel re-plots the dendrogram with the dashed cut at 1.1; the right
+panel spreads the same sites in coordinate space, colored by **merged group**
+rather than by Euclidean cluster id, so seam-partners appear in one color.
+
+```{python}
+fig1, axes = plt.subplots(1,2)
+# plt.rcParams['figure.figsize'] = (12,5)
+# plt.rcParams['font.size'] = 20
+
+# Plot dendrogram with cut-off shown
+dendrogram(linkage_matrix, ax=axes[0])
+axes[0].hlines(y=cutoff,xmin=0, xmax=100, linestyles="dashed")
+for gid in np.unique(point_groups):
+    mask = (point_groups == gid)
+    X = hc_stats[mask,0]
+    Y = hc_stats[mask,1]
+    axes[1].scatter(X, Y, s=16)
+    
+axes[0].set_ylabel("Dissimilarity @ Merger")
+axes[0].set_xlabel("Single Observations")
+axes[1].set_ylabel("Y axis")
+axes[1].set_xlabel("X axis")
+
+axes[1].set_xlim([-1,5]); axes[1].set_ylim([-1,5])
+print(linkage_matrix)
+```
+
+## Step 6 -- Side-by-side: lattice, dendrogram, merged clusters
+
+The full picture. Panel A is the raw lattice, B the dendrogram with the cut,
+C the clusters colored by merged group; site labels in C read
+`cluster id / merged group id`, making the periodic merge visible as two
+differently-labeled sites in one color (`2/2` and `3/2`).
+
+```{python}
+fig2,axes = plt.subplots(1,3)
+# fig2.figsize = (16,5)
+plt.rcParams['font.size'] = 18
+
+axes[0].set_title("A")
+axes[0].set_xticks(np.arange(-0.5,5.0,1))
+axes[0].set_yticks(np.arange(-0.5,5.0,1))
+axes[0].grid()
+axes[0].imshow(sample_lattice, origin="lower")
+
+# Pinpoint the lattice sites
+occupied_pts = np.transpose(np.nonzero(sample_lattice))
+axes[0].scatter(occupied_pts[:,1], occupied_pts[:,0])
+axes[0].set_ylabel("Y axis")
+axes[0].set_xlabel("X axis")
+
+# Plot the dendrogram
+hierarchy.set_link_color_palette(['m', 'c', 'y', 'k'])
+dendrogram(linkage_matrix, ax=axes[1])
+axes[1].hlines(y=cutoff,xmin=0, xmax=100, linestyles="dashed")
+axes[1].set_title("B")
+axes[1].set_ylabel("Dissimilarity @ Merger")
+axes[1].set_xlabel("Single Observations")
+
+# Plot scatter plot of data points, colored-coded by merged cluster group
+for gid in np.unique(point_groups):
+    mask = (point_groups == gid)
+    X = hc_stats[mask,0]
+    Y = hc_stats[mask,1]
+    axes[2].scatter(X, Y, s=40)
+    
+axes[2].set_title("C")
+axes[2].set_xlim([-1,5]); axes[2].set_ylim([-1,5])
+axes[2].set_ylabel("Y axis")
+axes[2].set_xlabel("X axis")
+
+plt.tight_layout()
+
+# Label each site with 'cluster id / merged group id'
+for x, y, cid in hc_stats:
+    axes[2].text(x+0.15, y+0.15, f"{cid}/{group_of[int(cid)]}", fontsize=15)
+```
+
+## Summary
+
+Four Euclidean clusters reduce to three physical clusters once the periodic
+boundary is honored: `[[0], [1], [2, 3]]`, with `[2, 3]` straddling the seam.
+Swapping `method="single"` for another linkage or moving the cutoff changes
+stage 1 only -- the reconciliation in stage 2 operates on whatever clusters
+stage 1 produces.

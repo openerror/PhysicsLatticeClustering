@@ -12,7 +12,18 @@ During my doctoral studies, I creatively combined machine learning with "traditi
 3. And *that* is why we need both BFS and hierarchical clustering! 
 
 ## Software Requirements
-Tested on Python ~~3.5, 3.6, 3.7,~~ 3.12. Please see [requirements.txt](requirements.txt) file for dependencies.
+Tested on Python ~~3.5, 3.6, 3.7, 3.12~~ 3.14, managed with [uv](https://docs.astral.sh/uv/). Dependencies are
+declared in [pyproject.toml](pyproject.toml) and locked (exact versions for reproducibility) in [uv.lock](uv.lock).
+
+## Getting Started
+With [uv installed](https://docs.astral.sh/uv/getting-started/installation/):
+
+```sh
+uv sync                              # create .venv on Python 3.14 and install locked deps
+uv run python -m pytest src/ -v      # run the unit tests
+uv run jupyter notebook              # work through the showcase notebooks
+```
+
 
 ## Usage Directions
 All code files are located under `src`. For a visual demonstration of hierarchical clustering
@@ -22,13 +33,10 @@ please see `CompletWorkflow-Showcase.ipynb`.
 Here are their purposes, briefly:
 
 `clustering.py`
-* Wrappers for hierarchical clustering routines provided by `SciPy`; output feeds into functions defined in `grouping.py`
+* Wrappers for hierarchical clustering routines provided by `SciPy`; output feeds into the periodic-boundary reconciliation, which merges the clusters touching across lattice seams (via `bfs.py`)
 
-`grouping.py`
-* Handles periodic boundaries conditions; invokes `BFS.py`
-
-`BFS.py`
+`bfs.py`
 * Executes breadth-first search to identify clusters touching across periodic boundaries'
 
-`tests.py`
-For now: basic unit tests on `BFS.py`. More to be implemented.
+`test_bfs.py`, `test_clustering.py`
+* Pytest unit tests, one file per module; run with `uv run python -m pytest src/ -v`
