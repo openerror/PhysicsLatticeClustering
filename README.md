@@ -20,7 +20,7 @@ With [uv installed](https://docs.astral.sh/uv/getting-started/installation/):
 
 ```sh
 uv sync                              # create .venv on Python 3.14 and install locked deps
-uv run python src/tests.py           # run the unit tests
+uv run python -m pytest src/ -v      # run the unit tests
 uv run jupyter notebook              # work through the showcase notebooks
 ```
 
@@ -36,10 +36,10 @@ Here are their purposes, briefly:
 * Wrappers for hierarchical clustering routines provided by `SciPy`; output feeds into functions defined in `grouping.py`
 
 `grouping.py`
-* Handles periodic boundaries conditions; invokes `BFS.py`
+* Handles periodic boundaries conditions; invokes `bfs.py`
 
-`BFS.py`
+`bfs.py`
 * Executes breadth-first search to identify clusters touching across periodic boundaries'
 
-`tests.py`
-For now: basic unit tests on `BFS.py`. More to be implemented.
+`test_bfs.py`, `test_clustering.py`, `test_grouping.py`
+* Pytest unit tests, one file per module; run with `uv run python -m pytest src/ -v`
