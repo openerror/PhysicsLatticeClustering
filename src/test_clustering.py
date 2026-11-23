@@ -124,6 +124,38 @@ def test_find_cluster_grouping_paper_example():
     assert groups == {frozenset(merged)} | {frozenset({cid}) for cid in singletons}
 
 
+def test_find_cluster_grouping_transitive():
+    # A touches the left edge at y=2; B touches the right edge (y=2) AND the
+    # left edge (y=4); C touches the right edge at y=4. A and C never overlap
+    # directly, so BFS must chain them transitively across the two seams.
+    coords = [
+        (np.array([0]), np.array([2]), True, 0),
+        (np.array([5, 0]), np.array([2, 4]), True, 1),
+        (np.array([5]), np.array([4]), True, 2),
+    ]
+    grouping = find_cluster_grouping(coords, {"sizeX": 6, "sizeY": 6})
+    assert grouping is not None
+    assert {frozenset(int(m) for m in group) for group in grouping} == {
+        frozenset({0, 1, 2})
+    }
+
+
+def test_find_cluster_grouping_ids_need_not_be_positions():
+    # The pairing matrix is indexed by the cluster id (slot 3 of each tuple),
+    # not by the tuple's position in the list.
+    coords = [
+        (np.array([0]), np.array([3]), True, 0),
+        (np.array([5]), np.array([3]), True, 2),
+        (np.array([2]), np.array([1]), False, 1),
+    ]
+    grouping = find_cluster_grouping(coords, {"sizeX": 6, "sizeY": 6})
+    assert grouping is not None
+    assert {frozenset(int(m) for m in group) for group in grouping} == {
+        frozenset({0, 2}),
+        frozenset({1}),
+    }
+
+
 def test_find_cluster_grouping_no_straddle():
     lattice = np.zeros((5, 5))
     for row, col in [(1, 1), (1, 2), (2, 1)]:

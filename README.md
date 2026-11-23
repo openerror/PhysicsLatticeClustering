@@ -33,13 +33,10 @@ please see `CompletWorkflow-Showcase.ipynb`.
 Here are their purposes, briefly:
 
 `clustering.py`
-* Wrappers for hierarchical clustering routines provided by `SciPy`; output feeds into functions defined in `grouping.py`
-
-`grouping.py`
-* Handles periodic boundaries conditions; invokes `bfs.py`
+* Wrappers for hierarchical clustering routines provided by `SciPy`; output feeds into the periodic-boundary reconciliation, which merges the clusters touching across lattice seams (via `bfs.py`)
 
 `bfs.py`
 * Executes breadth-first search to identify clusters touching across periodic boundaries'
 
-`test_bfs.py`, `test_clustering.py`, `test_grouping.py`
+`test_bfs.py`, `test_clustering.py`
 * Pytest unit tests, one file per module; run with `uv run python -m pytest src/ -v`
